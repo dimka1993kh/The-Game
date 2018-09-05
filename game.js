@@ -138,34 +138,35 @@ class Level {
     let topGrid = 0;
     let bottomGrid = this.height;
 
-    let leftNewPosition = newPosition.x;
-    let rightNewPosition = newPosition.x + newSize.x;
-    let topNewPosition = newPosition.y;
-    let bottomNewPosition = newPosition.y + newSize.y;
+    let leftNewPosition = Math.floor(newPosition.x);
+    let rightNewPosition = Math.floor(newPosition.x) + Math.ceil(newSize.x);
+    let topNewPosition = Math.floor(newPosition.y);
+    let bottomNewPosition = Math.floor(newPosition.y) + Math.ceil(newSize.y);
 
-    for (let i = 0; i < this.grid.length; i++) {
-      let string = this.grid[i];
-      for (let j = 0; j < string.length; j++) {
-        if (this.grid[i][j] === 'wall') {
-          if ((rightNewPosition > this.grid[i][j]) && (leftNewPosition < this.grid[i][j] + 1) && (bottomNewPosition > this.grid[i]) && (topNewPosition < this.grid[i] + 1)) {
-            return 'wall';
-          }
-        }
-        if (this.grid[i][j] === 'lava') {
-          if ((rightNewPosition > this.grid[i][j]) && (leftNewPosition < this.grid[i][j] + 1) && (bottomNewPosition > this.grid[i]) && (topNewPosition < this.grid[i] + 1)) {
-            return 'lava';
-          }
-        }
-        if ((leftNewPosition < leftGrid) || (topNewPosition < topGrid) || (rightNewPosition > rightGrid)) {
-          return `wall`;
-        }
+    if (this.grid[topNewPosition] !== undefined) {
 
-        if (bottomNewPosition > bottomGrid) {
-          return `lava`;
+      if (this.grid[topNewPosition][leftNewPosition] === 'wall') {
+        if ((rightNewPosition > newPosition.x) && (leftNewPosition < newPosition.x + 1) && (bottomNewPosition > newPosition.y) && (topNewPosition < newPosition.y + 1)) {
+          return 'wall';
         }
       }
+      if (this.grid[topNewPosition][leftNewPosition] === 'lava') {
+        if ((rightNewPosition > newPosition.x) && (leftNewPosition < newPosition.x + 1) && (bottomNewPosition > newPosition.y) && (topNewPosition < newPosition.y + 1)) {
+          return 'lava';
+        }
+      }
+
+    }
+    if ((leftNewPosition < leftGrid) || (topNewPosition < topGrid) || (rightNewPosition > rightGrid)) {
+      return `wall`;
+    }
+
+    if (bottomNewPosition > bottomGrid) {
+      return `lava`;
     }
   }
+  //}
+  //}
 
   removeActor(actor) {
     if (this.actors !== undefined) {
@@ -259,7 +260,7 @@ class LevelParser {
       var maxWidth = Math.max(...widthString);
 
       newGrid.push(newString.slice());
-      for (let i = 0; i < newGrid.length; i++) {
+      for (let i = 0; i < stringArray.length; i++) {
         for (let j = 0; j < maxWidth; j++) {
           let element = stringArray[i].split('')[j];
 
@@ -272,8 +273,8 @@ class LevelParser {
           else {
             newGrid[i][j] = undefined;
           }
-          if ((j === maxWidth - 1) && (stringArray[i + 1] !== undefined)) {
-            newGrid.push(newString)
+          if ((j === maxWidth - 1) && (i !== stringArray.length - 1)) {
+            newGrid.push(newString.slice())
 
           }
         }
@@ -370,12 +371,13 @@ class FireRain extends Fireball {
 
 class Coin extends Actor {
   constructor(position) {
-    super(position)
-    this.pos = this.pos.plus(new Vector(0.2, 0.1));
+    super(position);
+    this.pos = this.pos.plus(new Vector(0.2, 0.1))
     this.size = new Vector(0.6, 0.6);
     this.springSpeed = 8;
     this.springDist = 0.07;
     this.spring = Math.random() * 2 * Math.PI;
+
 
   }
 
@@ -390,8 +392,7 @@ class Coin extends Actor {
   }
   getNextPosition(time = 1) {
     this.updateSpring(time);
-    const deltaPosition = this.getSpringVector();
-    return this.pos.plus(deltaPosition);
+    return this.pos.plus(this.getSpringVector());
   }
   act(time) {
     this.pos = this.getNextPosition(time);
@@ -408,6 +409,4 @@ class Player extends Actor {
     return 'player'
   }
 }
-
-
 

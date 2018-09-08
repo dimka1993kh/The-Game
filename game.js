@@ -65,15 +65,9 @@ class Actor {
 
       return true;
     }
-    /* if ((this.right <= actorObject.left) || (this.left >= actorObject.right) || (this.bottom <= actorObject.top) || (this.top >= actorObject.bottom) || ((this.pos == actorObject.pos) && (this.size == actorObject.size))) {
-      return false;
-     }*/
     else {
       return false;
     }
-
-
-    //Просто, как дважды два. Проверяем если верхняя грань первого прямоугольника находится ниже второго, или нижняя выше верхней  грани первого. Тоже самое и для оси X. 
   }
 };
 
@@ -329,7 +323,7 @@ class Fireball extends Actor {
     return 'fireball'
   }
   getNextPosition(time = 1) {
-    return new Vector(this.pos.x + this.speed.x * time, this.pos.y + this.speed.y * time);
+    return new Vector((this.pos.x + this.speed.x * time) , this.pos.y + this.speed.y * time);
   }
   handleObstacle() {
     return this.speed = this.speed.times(-1);
@@ -410,3 +404,34 @@ class Player extends Actor {
   }
 }
 
+const schemas = [
+    [
+      '         ',
+      '         ',
+      '    =    ',
+      '       o ',
+      '     !xxx',
+      ' @       ',
+      'xxx!     ',
+      '         '
+    ],
+    [
+      '      v  ',
+      '    v    ',
+      '  v      ',
+      '        o',
+      '        x',
+      '@   x    ',
+      'x        ',
+      '         '
+    ]
+  ];
+  const actorDict = {
+    '@': Player,
+    'v': FireRain,
+    'o': Coin,
+    '=': HorizontalFireball
+  }
+  const parser = new LevelParser(actorDict);
+  runGame(schemas, parser, DOMDisplay)
+    .then(() => console.log('Вы выиграли приз!'));

@@ -432,14 +432,17 @@ class Player extends Actor {
   ]
 ];*/
 
-  const actorDict = {
-    '@': Player,
-    'v': FireRain,
-    'o': Coin,
-    '=': HorizontalFireball,
-    '|' : VerticalFireball
-  }
 
-  const parser = new LevelParser(actorDict);
-  runGame(JSON.parse(loadLevels()), parser, DOMDisplay)
-    .then(() => alert('ой, а ты победил(('));
+const actorDict = {
+  '@': Player,
+  'v': FireRain,
+  'o': Coin,
+  '=': HorizontalFireball,
+  '|' : VerticalFireball
+}
+
+const parser = new LevelParser(actorDict);
+let yyy = loadLevels()
+  .then(result => runGame(JSON.parse(result), parser, DOMDisplay)
+      .then(() => alert('ой, а ты победил((')))
+  .catch(error => console.error('Ошибка при создании уровня'));

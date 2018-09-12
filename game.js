@@ -58,33 +58,28 @@ class Actor {
     if ((!(actorObject instanceof Actor)) || (typeof (actorObject) === 'undefined')) {
       throw new Error`Можно проверить на пересечение только движущийся объект класса Actor`;
     }
-    if ((this.right > actorObject.left) && (this.left < actorObject.right) && (this.bottom > actorObject.top) && (this.top < actorObject.bottom)) {
-      if ((this.pos == actorObject.pos) && (this.size == actorObject.size)) {
-        return false
-      }
-
+  if ((this.right > actorObject.left) && (this.left < actorObject.right) && (this.bottom > actorObject.top) && (this.top < actorObject.bottom) && (this !== actorObject) /*&& (this.pos !== actorObject.pos) && (this.size !== actorObject.size)*/) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
 };
 
 class Level {
-  constructor(gridArrayInArray = [], arrayOfActorClass) {
-    this.grid = gridArrayInArray;
+  constructor(grid = [], arrayOfActorClass) {
+    this.grid = grid;
     this.actors = arrayOfActorClass;
-    this.height = gridArrayInArray.length;
+    this.height = grid.length;
     this.status = null;
     this.finishDelay = 1;
 
   }
   get player() {
     if (typeof (this.actors) !== 'undefined') {
-      let typePlayer = this.actors.find(function (el) {
-        if (el.type === 'player') {
-          return el;
+      let typePlayer = this.actors.find( (actor) => {
+        if (actor.type === 'player') {
+          return actor;
         }
       });
       return typePlayer;
@@ -94,34 +89,33 @@ class Level {
     if (this.grid.length === 0) {
       return 0;
     }
+
+  
+
     let searchForTheMaxLengthOfTheArray = [];
-    for (let item of this.grid) {
-      searchForTheMaxLengthOfTheArray.push(item.length);
+    for (let string of this.grid) {
+      searchForTheMaxLengthOfTheArray.push(string.length);
     }
-    return Math.max.apply(null, searchForTheMaxLengthOfTheArray);
+    return Math.max(...searchForTheMaxLengthOfTheArray);
   }
   isFinished() {
     if ((this.status !== null) && (this.finishDelay < 0)) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
-  actorAt(actor) {
-    if ((typeof (actor) == 'underfined') || (!(actor instanceof Actor))) {
+  actorAt(searchActor) {
+    if ((typeof (searchActor) == 'underfined') || (!(searchActor instanceof Actor))) {
       throw new Error`В метод actorAt может быть передан только объект класса Actor`;
     }
-    if (this.actors !== undefined) {
-      for (let item of this.actors) {
-        if (actor.isIntersect(item)) {
-          return item;
-        }
+     if (this.actors !== undefined) {
+      this.actors.find( (actor) => {
+        if (searchActor.isIntersect(actor)) {
+          return actor;
+        }         
+      });        
       }
-    }
-    else {
-      return undefined;
-    }
   }
   obstacleAt(newPosition, newSize) {
     if ((!(newPosition instanceof Vector)) || (!(newSize instanceof Vector))) {
@@ -132,42 +126,36 @@ class Level {
     let topGrid = 0;
     let bottomGrid = this.height;
 
-    let leftNewPosition = Math.floor(newPosition.x);
-    let rightNewPosition = Math.floor(newPosition.x) + Math.ceil(newSize.x);
+    /*let leftNewPosition = Math.floor(newPosition.x);
+    let rightNewPosition = Math.ceil(newPosition.x + newSize.x);
     let topNewPosition = Math.floor(newPosition.y);
-    let bottomNewPosition = Math.floor(newPosition.y) + Math.ceil(newSize.y);
+    let bottomNewPosition = Math.ceil(newPosition.y + newSize.y);*/
 
-    if (this.grid[topNewPosition] !== undefined) {
-
-      if (this.grid[topNewPosition][leftNewPosition] === 'wall') {
-        if ((rightNewPosition > newPosition.x) && (leftNewPosition < newPosition.x + 1) && (bottomNewPosition > newPosition.y) && (topNewPosition < newPosition.y + 1)) {
-          return 'wall';
+    let leftNewPosition = Math.floor(newPosition.x);
+    let rightNewPosition = Math.ceil(newPosition.x + newSize.x);
+    let topNewPosition = Math.floor(newPosition.y);
+    let bottomNewPosition = Math.ceil(newPosition.y + newSize.y)
+    
+    if ((leftNewPosition >= 0) && (rightNewPosition < rightGrid) && (topNewPosition >= 0) && (bottomNewPosition < bottomGrid)) { 
+      for (let y = bottomNewPosition - 1; y >= topNewPosition; y--) {
+        for (let x = leftNewPosition; x < rightNewPosition; x++) {
+          if (this.grid[y][x] === 'wall' || 'lava') {
+            return this.grid[y][x];
+          }
         }
       }
-      if (this.grid[topNewPosition][leftNewPosition] === 'lava') {
-        if ((rightNewPosition > newPosition.x) && (leftNewPosition < newPosition.x + 1) && (bottomNewPosition > newPosition.y) && (topNewPosition < newPosition.y + 1)) {
-          return 'lava';
-        }
-      }
 
-    }
-    if ((leftNewPosition < leftGrid) || (topNewPosition < topGrid) || (rightNewPosition > rightGrid)) {
-      return `wall`;
-    }
-
-    if (bottomNewPosition > bottomGrid) {
+    } else if ((leftNewPosition < leftGrid) || (topNewPosition <= topGrid) || (rightNewPosition > rightGrid)) {
+      return 'wall';
+    } else if (bottomNewPosition >= bottomGrid) {
       return `lava`;
-    }
+    } 
   }
-  //}
-  //}
-
   removeActor(actor) {
     if (this.actors !== undefined) {
       do {
-
-        var index = this.actors.findIndex(function (item) {
-          return ((item.pos === actor.pos) && (item.size === actor.size) && ((item.speed === actor.speed)));
+        var index = this.actors.findIndex( (actor) => {
+          return ((actor.pos === actor.pos) && (actor.size === actor.size) && ((actor.speed === actor.speed)));
         })
         if (index != -1) {
           this.actors.splice(index, 1)
@@ -180,17 +168,15 @@ class Level {
   }
   noMoreActors(stringType) {
     if (this.actors !== undefined) {
-      let findObject = this.actors.find(function (el) {
-        return el.type === stringType;
+      let findObject = this.actors.find( (actor) => {
+        return actor.type === stringType;
       });
       if (findObject !== undefined) {
         return false;
-      }
-      else {
+      } else {
         return true;
       }
-    }
-    else {
+    } else {
       return true;
     }
   }
@@ -203,8 +189,8 @@ class Level {
       if ((typeObject === 'coin') && (movingObject.type === 'coin')) {
         this.removeActor(movingObject);
       }
-      let findCoin = this.actors.find(function (el) {
-        return el.type === 'coin';
+      let findCoin = this.actors.find( (actor) => {
+        return actor.type === 'coin';
       });
       if (findCoin !== undefined) {
         this.status = 'won';
@@ -221,9 +207,9 @@ class LevelParser {
   }
   actorFromSymbol(character) {
     if (this.dictionary !== undefined) {
-      for (let i in this.dictionary) {
-        if (i === character) {
-          return this.dictionary[i];
+      for (let element in this.dictionary) {
+        if (element === character) {
+          return this.dictionary[element];
         }
       }
     }
@@ -233,11 +219,9 @@ class LevelParser {
     let string;
     if (character === 'x') {
       string = 'wall';
-    }
-    else if (character === '!') {
+    } else if (character === '!') {
       string = 'lava';
-    }
-    else {
+    } else {
       string = undefined;
     }
     return string;
@@ -248,26 +232,24 @@ class LevelParser {
       let newGrid = [];
       let newString = [];
       let widthString = [];
-      stringArray.forEach(function (el) {
-        widthString.push(el.length);
+      stringArray.forEach( (string) => {
+        widthString.push(string.length);
       });
       var maxWidth = Math.max(...widthString);
 
       newGrid.push(newString.slice());
-      for (let i = 0; i < stringArray.length; i++) {
-        for (let j = 0; j < maxWidth; j++) {
-          let element = stringArray[i].split('')[j];
+      for (let y = 0; y < stringArray.length; y++) {
+        for (let x = 0; x < maxWidth; x++) {
+          let element = stringArray[y].split('')[x];
 
           if (element === 'x') {
-            newGrid[i][j] = 'wall';
+            newGrid[y][x] = 'wall';
+          } else if (element === '!') {
+            newGrid[y][x] = 'lava';
+          } else {
+            newGrid[y][x] = undefined;
           }
-          else if (element === '!') {
-            newGrid[i][j] = 'lava';
-          }
-          else {
-            newGrid[i][j] = undefined;
-          }
-          if ((j === maxWidth - 1) && (i !== stringArray.length - 1)) {
+          if ((x === maxWidth - 1) && (y !== stringArray.length - 1)) {
             newGrid.push(newString.slice())
 
           }
@@ -275,8 +257,7 @@ class LevelParser {
       }
       stringArray = newGrid;
 
-    }
-    else {
+    } else {
       stringArray = [];
     }
     return stringArray;
@@ -285,12 +266,12 @@ class LevelParser {
   createActors(stringArray) {
     let stringActors = [];
     if (stringArray.length !== 0) {
-      for (let i = 0; i < stringArray.length; i++) {
-        for (let j = 0; j < stringArray[i].split('').length; j++) {
-          let constructorActors = this.actorFromSymbol(stringArray[i][j]);
+      for (let y = 0; y < stringArray.length; y++) {
+        for (let x = 0; x < stringArray[y].split('').length; x++) {
+          let constructorActors = this.actorFromSymbol(stringArray[y][x]);
           if (constructorActors !== undefined) {
             if ((constructorActors === Actor) || (constructorActors.prototype instanceof Actor)) {
-              let newActor = new constructorActors(new Vector(j, i));
+              let newActor = new constructorActors(new Vector(x, y));
 
               stringActors.push(newActor)
 
@@ -300,8 +281,7 @@ class LevelParser {
         }
       }
 
-    }
-    else {
+    } else {
       return stringArray = [];
     }
     return stringArray = stringActors;
@@ -332,8 +312,7 @@ class Fireball extends Actor {
     let newPosition = this.getNextPosition(time);
     if (playField.obstacleAt(newPosition, this.size) === undefined) {
       this.pos = newPosition;
-    }
-    else if (playField.obstacleAt(newPosition, this.size) === 'wall' || 'lava') {
+    } else if (playField.obstacleAt(newPosition, this.size) === 'wall' || 'lava') {
       this.handleObstacle();
     }
 
@@ -404,45 +383,16 @@ class Player extends Actor {
   }
 }
 
-
-/*[
-  [
-    '  v       ',
-    '   v      ',
-    'oo   oo  =',
-    'xx   xx   ',
-    '         =',
-    '   xx     ',
-    '@ o     o ',
-    'x x    xxx',
-    '          ',
-    '!!!!!!!!!!'
-  ],
-  [
-    'v        v',
-    ' v      v ',
-    '   oooo   ',
-    '  xxxxxx  ',
-    '          ',
-    '   oooo   ',
-    ' xxxxxxxx ',
-    '          ',
-    ' @ oooo   ',
-    'xxxxxxxxxx'
-  ]
-];*/
-
-
 const actorDict = {
   '@': Player,
   'v': FireRain,
-  'o': Coin,
+  //'o': Coin,
   '=': HorizontalFireball,
   '|' : VerticalFireball
 }
 
 const parser = new LevelParser(actorDict);
-let yyy = loadLevels()
+loadLevels()
   .then(result => runGame(JSON.parse(result), parser, DOMDisplay)
       .then(() => alert('ой, а ты победил((')))
   .catch(error => console.error('Ошибка при создании уровня'));

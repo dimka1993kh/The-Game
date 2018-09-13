@@ -1,4 +1,4 @@
-'use strict'
+﻿'use strict'
 
 class Vector {
   constructor(x = 0, y = 0) {
@@ -110,7 +110,6 @@ class Level {
       throw new Error`В метод actorAt может быть передан только объект класса Actor`;
     }
      if (this.actors !== undefined) {
-      this.actors.find( (actor) => {
       for (let actor of this.actors) {
         if (actor.isIntersect(searchActor)) {
           return actor;

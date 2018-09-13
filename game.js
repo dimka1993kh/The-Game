@@ -111,10 +111,11 @@ class Level {
     }
      if (this.actors !== undefined) {
       this.actors.find( (actor) => {
-        if (searchActor.isIntersect(actor)) {
+      for (let actor of this.actors) {
+        if (actor.isIntersect(searchActor)) {
           return actor;
-        }         
-      });        
+        }
+      }
       }
   }
   obstacleAt(newPosition, newSize) {
@@ -126,22 +127,22 @@ class Level {
     let topGrid = 0;
     let bottomGrid = this.height;
 
-    /*let leftNewPosition = Math.floor(newPosition.x);
-    let rightNewPosition = Math.ceil(newPosition.x + newSize.x);
-    let topNewPosition = Math.floor(newPosition.y);
-    let bottomNewPosition = Math.ceil(newPosition.y + newSize.y);*/
-
     let leftNewPosition = Math.floor(newPosition.x);
     let rightNewPosition = Math.ceil(newPosition.x + newSize.x);
     let topNewPosition = Math.floor(newPosition.y);
     let bottomNewPosition = Math.ceil(newPosition.y + newSize.y)
     
     if ((leftNewPosition >= 0) && (rightNewPosition < rightGrid) && (topNewPosition >= 0) && (bottomNewPosition < bottomGrid)) { 
+      let cell;
       for (let y = bottomNewPosition - 1; y >= topNewPosition; y--) {
         for (let x = leftNewPosition; x < rightNewPosition; x++) {
-          if (this.grid[y][x] === 'wall' || 'lava') {
-            return this.grid[y][x];
+          if ((this.grid[y][x] === undefined) && (this.grid[y][x + 1] === 'wall')) {
+            cell = this.grid[y][x + 1];
+          } else if (this.grid[y][x] === 'wall' || 'lava') {
+              cell = this.grid[y][x];
           }
+
+          return cell;
         }
       }
 
@@ -151,19 +152,18 @@ class Level {
       return `lava`;
     } 
   }
-  removeActor(actor) {
+
+  removeActor(removeActor) {
     if (this.actors !== undefined) {
       do {
         var index = this.actors.findIndex( (actor) => {
-          return ((actor.pos === actor.pos) && (actor.size === actor.size) && ((actor.speed === actor.speed)));
+          return ((removeActor.pos === actor.pos) && (removeActor.size === actor.size) && ((removeActor.speed === actor.speed)));
         })
         if (index != -1) {
           this.actors.splice(index, 1)
         }
       }
-
       while (index >= 0)
-
     }
   }
   noMoreActors(stringType) {
@@ -192,7 +192,7 @@ class Level {
       let findCoin = this.actors.find( (actor) => {
         return actor.type === 'coin';
       });
-      if (findCoin !== undefined) {
+      if (findCoin === undefined) {
         this.status = 'won';
       }
     }
@@ -272,25 +272,19 @@ class LevelParser {
           if (constructorActors !== undefined) {
             if ((constructorActors === Actor) || (constructorActors.prototype instanceof Actor)) {
               let newActor = new constructorActors(new Vector(x, y));
-
               stringActors.push(newActor)
-
             }
-
           }
         }
       }
-
     } else {
       return stringArray = [];
     }
     return stringArray = stringActors;
   }
-
   parse(stringArray) {
     return new Level(this.createGrid(stringArray), this.createActors(stringArray))
   }
-
 }
 
 class Fireball extends Actor {
@@ -350,8 +344,6 @@ class Coin extends Actor {
     this.springSpeed = 8;
     this.springDist = 0.07;
     this.spring = Math.random() * 2 * Math.PI;
-
-
   }
 
   get type() {
@@ -386,7 +378,7 @@ class Player extends Actor {
 const actorDict = {
   '@': Player,
   'v': FireRain,
-  //'o': Coin,
+  'o': Coin,
   '=': HorizontalFireball,
   '|' : VerticalFireball
 }

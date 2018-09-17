@@ -89,14 +89,11 @@ class Level {
     if (this.grid.length === 0) {
       return 0;
     }
-
-  
-
-    let searchForTheMaxLengthOfTheArray = [];
+    let gridRowsLength = [];
     for (let string of this.grid) {
-      searchForTheMaxLengthOfTheArray.push(string.length);
+      gridRowsLength.push(string.length);
     }
-    return Math.max(...searchForTheMaxLengthOfTheArray);
+    return Math.max(...gridRowsLength);
   }
   isFinished() {
     if ((this.status !== null) && (this.finishDelay < 0)) {
@@ -110,12 +107,16 @@ class Level {
       throw new Error`В метод actorAt может быть передан только объект класса Actor`;
     }
      if (this.actors !== undefined) {
-      for (let actor of this.actors) {
-        if (actor.isIntersect(searchActor)) {
-          return actor;
-        }
+
+      let crossActor = this.actors.find((actor) => {
+          return searchActor.isIntersect(actor);
+      });
+      if (crossActor !== undefined) {
+        return crossActor;
+      } else {
+        return undefined;
       }
-      }
+    }
   }
   obstacleAt(newPosition, newSize) {
     if ((!(newPosition instanceof Vector)) || (!(newSize instanceof Vector))) {
@@ -129,40 +130,35 @@ class Level {
     let leftNewPosition = Math.floor(newPosition.x);
     let rightNewPosition = Math.ceil(newPosition.x + newSize.x);
     let topNewPosition = Math.floor(newPosition.y);
-    let bottomNewPosition = Math.ceil(newPosition.y + newSize.y)
+    let bottomNewPosition = Math.ceil(newPosition.y + newSize.y);
     
+
     if ((leftNewPosition >= 0) && (rightNewPosition < rightGrid) && (topNewPosition >= 0) && (bottomNewPosition < bottomGrid)) { 
       let cell;
-      for (let y = bottomNewPosition - 1; y >= topNewPosition; y--) {
+
+      for (let y = topNewPosition; y < bottomNewPosition; y++) {
         for (let x = leftNewPosition; x < rightNewPosition; x++) {
-          if ((this.grid[y][x] === undefined) && (this.grid[y][x + 1] === 'wall')) {
-            cell = this.grid[y][x + 1];
-          } else if (this.grid[y][x] === 'wall' || 'lava') {
-              cell = this.grid[y][x];
-          }
-
-          return cell;
-        }
+          if (this.grid[y][x] !== undefined) {
+            cell = this.grid[y][x];
+          } 
+        } 
       }
-
+      return cell;
     } else if ((leftNewPosition < leftGrid) || (topNewPosition <= topGrid) || (rightNewPosition > rightGrid)) {
       return 'wall';
-    } else if (bottomNewPosition >= bottomGrid) {
+    } else if (bottomNewPosition > bottomGrid) {
       return `lava`;
     } 
   }
 
   removeActor(removeActor) {
     if (this.actors !== undefined) {
-      do {
-        var index = this.actors.findIndex( (actor) => {
-          return ((removeActor.pos === actor.pos) && (removeActor.size === actor.size) && ((removeActor.speed === actor.speed)));
-        })
-        if (index != -1) {
-          this.actors.splice(index, 1)
-        }
+      var index = this.actors.findIndex( (actor) => {
+        return ((removeActor.pos === actor.pos) && (removeActor.size === actor.size) && ((removeActor.speed === actor.speed)));
+      });
+      if (index != -1) {
+        this.actors.splice(index, 1)
       }
-      while (index >= 0)
     }
   }
   noMoreActors(stringType) {
@@ -228,38 +224,30 @@ class LevelParser {
   createGrid(stringArray) {
 
     if (stringArray.length !== 0) {
-      let newGrid = [];
-      let newString = [];
-      let widthString = [];
-      stringArray.forEach( (string) => {
-        widthString.push(string.length);
-      });
-      var maxWidth = Math.max(...widthString);
 
-      newGrid.push(newString.slice());
-      for (let y = 0; y < stringArray.length; y++) {
-        for (let x = 0; x < maxWidth; x++) {
-          let element = stringArray[y].split('')[x];
+    let newGrid = [[]];
+    let widthString = [];
+    let newString = [];
 
-          if (element === 'x') {
-            newGrid[y][x] = 'wall';
-          } else if (element === '!') {
-            newGrid[y][x] = 'lava';
-          } else {
-            newGrid[y][x] = undefined;
-          }
-          if ((x === maxWidth - 1) && (y !== stringArray.length - 1)) {
-            newGrid.push(newString.slice())
+    stringArray.forEach((string) => {
 
-          }
+      widthString.push(string.length);
+    });
+    var maxWidth = Math.max(...widthString);
+
+    for (let y = 0; y < stringArray.length; y++) {
+      for (let x = 0; x < maxWidth; x++) {
+        if ((x === maxWidth - 1) && (y !== stringArray.length - 1)) {
+          newGrid.push(newString.slice());
         }
+        newGrid[y][x] = this.obstacleFromSymbol(stringArray[y][x]);
       }
-      stringArray = newGrid;
-
-    } else {
-      stringArray = [];
     }
-    return stringArray;
+    stringArray = newGrid;
+  } else {
+    stringArray = [];
+  }
+  return stringArray;
   }
 
   createActors(stringArray) {
@@ -366,7 +354,7 @@ class Coin extends Actor {
 class Player extends Actor {
   constructor(position) {
     super(position);
-    this.pos = this.pos.plus(new Vector(0, -0.5))
+    this.pos = this.pos.plus(new Vector(0, -0.5));
     this.size = new Vector(0.8, 1.5);
   }
   get type() {

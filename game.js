@@ -90,9 +90,9 @@ class Level {
       return 0;
     }
     let gridRowsLength = [];
-    for (let string of this.grid) {
+    this.grid.forEach((string) => {
       gridRowsLength.push(string.length);
-    }
+    })
     return Math.max(...gridRowsLength);
   }
   isFinished() {
@@ -128,9 +128,9 @@ class Level {
     let bottomGrid = this.height;
 
     let leftNewPosition = Math.floor(newPosition.x);
-    let rightNewPosition = Math.ceil(newPosition.x + newSize.x);
+    let rightNewPosition = newPosition.x + newSize.x;
     let topNewPosition = Math.floor(newPosition.y);
-    let bottomNewPosition = Math.ceil(newPosition.y + newSize.y);
+    let bottomNewPosition = newPosition.y + newSize.y;
     
 
     if ((leftNewPosition >= 0) && (rightNewPosition < rightGrid) && (topNewPosition >= 0) && (bottomNewPosition < bottomGrid)) { 
@@ -138,13 +138,14 @@ class Level {
 
       for (let y = topNewPosition; y < bottomNewPosition; y++) {
         for (let x = leftNewPosition; x < rightNewPosition; x++) {
-          if (this.grid[y][x] !== undefined) {
-            cell = this.grid[y][x];
+          let newCell = this.grid[y][x]; 
+          if (newCell !== undefined) {
+            cell = newCell;
           } 
         } 
       }
       return cell;
-    } else if ((leftNewPosition < leftGrid) || (topNewPosition <= topGrid) || (rightNewPosition > rightGrid)) {
+    } else if ((leftNewPosition < leftGrid) || (topNewPosition < topGrid) || (rightNewPosition > rightGrid)) {
       return 'wall';
     } else if (bottomNewPosition > bottomGrid) {
       return `lava`;
@@ -204,7 +205,7 @@ class LevelParser {
     if (this.dictionary !== undefined) {
       for (let element in this.dictionary) {
         if (element === character) {
-          return this.dictionary[element];
+         return this.dictionary[element];
         }
       }
     }
@@ -224,37 +225,24 @@ class LevelParser {
   createGrid(stringArray) {
 
     if (stringArray.length !== 0) {
-
-    let newGrid = [[]];
-    let widthString = [];
-    let newString = [];
-
-    stringArray.forEach((string) => {
-
-      widthString.push(string.length);
+   stringArray = stringArray.map((string) => {
+      return string = [...string];
     });
-    var maxWidth = Math.max(...widthString);
-
-    for (let y = 0; y < stringArray.length; y++) {
-      for (let x = 0; x < maxWidth; x++) {
-        if ((x === maxWidth - 1) && (y !== stringArray.length - 1)) {
-          newGrid.push(newString.slice());
-        }
-        newGrid[y][x] = this.obstacleFromSymbol(stringArray[y][x]);
-      }
-    }
-    stringArray = newGrid;
-  } else {
-    stringArray = [];
-  }
+   stringArray = stringArray.map((string) => {
+      string = string.map((cell) => {
+        return cell = this.obstacleFromSymbol(cell)
+      });
+      return string;
+    })
+  } 
   return stringArray;
-  }
+  }                          
 
   createActors(stringArray) {
     let stringActors = [];
     if (stringArray.length !== 0) {
       for (let y = 0; y < stringArray.length; y++) {
-        for (let x = 0; x < stringArray[y].split('').length; x++) {
+        for (let x = 0; x < [...stringArray[y]].length; x++) {
           let constructorActors = this.actorFromSymbol(stringArray[y][x]);
           if (constructorActors !== undefined) {
             if ((constructorActors === Actor) || (constructorActors.prototype instanceof Actor)) {
@@ -291,9 +279,10 @@ class Fireball extends Actor {
   }
   act(time, playField) {
     let newPosition = this.getNextPosition(time);
-    if (playField.obstacleAt(newPosition, this.size) === undefined) {
+    let obtacle = playField.obstacleAt(newPosition, this.size);
+    if (obtacle === undefined) {
       this.pos = newPosition;
-    } else if (playField.obstacleAt(newPosition, this.size) === 'wall' || 'lava') {
+    } else {
       this.handleObstacle();
     }
 
@@ -326,6 +315,7 @@ class FireRain extends Fireball {
 class Coin extends Actor {
   constructor(position) {
     super(position);
+    this.position = position;
     this.pos = this.pos.plus(new Vector(0.2, 0.1))
     this.size = new Vector(0.6, 0.6);
     this.springSpeed = 8;
@@ -344,7 +334,7 @@ class Coin extends Actor {
   }
   getNextPosition(time = 1) {
     this.updateSpring(time);
-    return this.pos.plus(this.getSpringVector());
+    return this.position.plus(this.getSpringVector());
   }
   act(time) {
     this.pos = this.getNextPosition(time);

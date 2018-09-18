@@ -1,4 +1,6 @@
-  function obstacleFromSymbol(character) {
+let stringArray = ['x!x!', 'cccc', 'rt4!'];
+
+function obstacleFromSymbol(character) {
     let string;
     if (character === 'x') {
       string = 'wall';
@@ -9,7 +11,8 @@
     }
     return string;
   }
-  function createGrid(stringArray) {
+/*
+function createGrid(stringArray) {
 
     if (stringArray.length !== 0) {
 
@@ -17,69 +20,45 @@
     let widthString = [];
     let newString = [];
 
-    stringArray.forEach( (string) => {
+    stringArray.forEach((string) => {
 
       widthString.push(string.length);
-      });
+    });
     var maxWidth = Math.max(...widthString);
 
-  
-
-      for (let y = 0; y < stringArray.length; y++) {
-        for (let x = 0; x < maxWidth; x++) {
-            if ((x === maxWidth - 1) && (y !== stringArray.length - 1)) {
-              newGrid.push(newString.slice());
-          }
-        newGrid[y][x] = obstacleFromSymbol(string[y]][x]);
+    for (let y = 0; y < stringArray.length; y++) {
+      for (let x = 0; x < maxWidth; x++) {
+        if ((x === maxWidth - 1) && (y !== stringArray.length - 1)) {
+          newGrid.push(newString.slice());
         }
+        newGrid[y][x] = this.obstacleFromSymbol(stringArray[y][x]);
       }
-    
+    }
     stringArray = newGrid;
-    } else {
-      stringArray = [];
-    }
-    return stringArray;
+  } else {
+    stringArray = [];
   }
-    
+  return stringArray;
+  }
+  
+   console.log(createGrid(stringArray))*/
 
-    /*if (stringArray.length !== 0) {
-      let newGrid = [];
-      let newString = [];
-      let widthString = [];
-      stringArray.forEach( (string) => {
-        widthString.push(string.length);
+function createGrid1(stringArray) {
+
+    if (stringArray.length !== 0) {
+
+    var stringArray1 = stringArray.map((string) => {
+      return string = [...string];
+    });
+
+    var stringArray2 = stringArray1.map((string) => {
+      string = string.map((cell) => {
+        return cell = this.obstacleFromSymbol(cell)
       });
-      var maxWidth = Math.max(...widthString);
-
-      newGrid.push(newString.slice());
-      for (let y = 0; y < stringArray.length; y++) {
-        for (let x = 0; x < maxWidth; x++) {
-          let element = stringArray[y].split('')[x];
-
-          if (element === 'x') {
-            newGrid[y][x] = 'wall';
-          } else if (element === '!') {
-            newGrid[y][x] = 'lava';
-          } else {
-            newGrid[y][x] = undefined;
-          }
-          if ((x === maxWidth - 1) && (y !== stringArray.length - 1)) {
-            newGrid.push(newString.slice())
-
-          }
-        }
-      }
-      stringArray = newGrid;
-
-    } else {
-      stringArray = [];
-    }
-    return stringArray;
-  }*/
-
-
-  let arr = ['xx!1',
-             '2345',
-              '!x!!']
-
-console.log(createGrid(arr))
+      return string;
+    })
+  } 
+  return stringArray2;
+  }
+  
+  console.log(createGrid1(stringArray))

@@ -225,33 +225,31 @@ class LevelParser {
   createGrid(stringArray) {
 
     if (stringArray.length !== 0) {
-   stringArray = stringArray.map((string) => {
-      return string = [...string];
-    });
-   stringArray = stringArray.map((string) => {
-      string = string.map((cell) => {
-        return cell = this.obstacleFromSymbol(cell)
+      return stringArray.map((string) => {
+        string = [...string].map((cell) => {
+          return this.obstacleFromSymbol(cell);
+        });
+        return string;
       });
-      return string;
-    })
-  } 
-  return stringArray;
-  }                          
+    } else {
+      return [];
+    }
+    }                        
 
   createActors(stringArray) {
     let stringActors = [];
     if (stringArray.length !== 0) {
-      for (let y = 0; y < stringArray.length; y++) {
-        for (let x = 0; x < [...stringArray[y]].length; x++) {
-          let constructorActors = this.actorFromSymbol(stringArray[y][x]);
+      stringArray.forEach((row, y) =>{
+        [...row].forEach((cell, x) => {
+          let constructorActors = this.actorFromSymbol(cell);
           if (constructorActors !== undefined) {
             if ((constructorActors === Actor) || (constructorActors.prototype instanceof Actor)) {
-              let newActor = new constructorActors(new Vector(x, y));
-              stringActors.push(newActor)
+            let newActor = new constructorActors(new Vector(x, y));
+            stringActors.push(newActor)
             }
           }
-        }
-      }
+        });
+      });
     } else {
       return stringArray = [];
     }
@@ -314,8 +312,9 @@ class FireRain extends Fireball {
 
 class Coin extends Actor {
   constructor(position = new Vector(0, 0)) {
-    super(position.plus(new Vector(0.2, 0.1)), new Vector(0.6, 0.6));
-    this.pos = position;
+    super(position, new Vector(0.6, 0.6));
+    this.pos = position.plus(new Vector(0.2, 0.1));
+    this.startPos = this.pos;
     this.springSpeed = 8;
     this.springDist = 0.07;
     this.spring = Math.random() * 2 * Math.PI;
@@ -332,7 +331,7 @@ class Coin extends Actor {
   }
   getNextPosition(time = 1) {
     this.updateSpring(time);
-    return this.pos.plus(this.getSpringVector());
+    return this.startPos.plus(this.getSpringVector());
   }
   act(time) {
     this.pos = this.getNextPosition(time);
@@ -349,27 +348,11 @@ class Player extends Actor {
     return 'player'
   }
 }
-/*
-const actorDict = {
-  '@': Player,
-  'v': FireRain,
-  'o': Coin,
-  '=': HorizontalFireball,
-  '|' : VerticalFireball
-}
 
-const parser = new LevelParser(actorDict);
-loadLevels()
-  .then(result => runGame(JSON.parse(result), parser, DOMDisplay)
-      .then(() => alert('ой, а ты победил((')))
-  .catch(error => console.error('Ошибка при создании уровня'));*/
-  let position;
-  const coin = new Coin(position);
-  const realPosition = coin.pos;
-  
-  coin.pos = coin.getNextPosition();
+const parser = new LevelParser();
+let plan = [
+  'x  x',
+  '!!!!'
+];
 
-  const newPosition = coin.getNextPosition();
-  const springVector = coin.getSpringVector();
-
-  console.log(newPosition.plus(realPosition.plus(springVector)).times(-1))
+const grid = parser.createGrid(plan);

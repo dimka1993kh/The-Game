@@ -225,15 +225,16 @@ class LevelParser {
   createGrid(stringArray) {
 
     if (stringArray.length !== 0) {
-      stringArray = stringArray.map((string) => {
+      return stringArray.map((string) => {
         string = [...string].map((cell) => {
-          return cell = this.obstacleFromSymbol(cell)
+          return this.obstacleFromSymbol(cell);
         });
         return string;
       });
+    } else {
+      return [];
     }
-    return stringArray;
-    }                          
+  }                          
 
   createActors(stringArray) {
     let stringActors = [];
@@ -250,9 +251,9 @@ class LevelParser {
         });
       });
     } else {
-      return stringArray = [];
+      return [];
     }
-    return stringArray = stringActors;
+    return stringActors;
   }
   parse(stringArray) {
     return new Level(this.createGrid(stringArray), this.createActors(stringArray))
